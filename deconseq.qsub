@@ -1,0 +1,19 @@
+#!/bin/bash
+#PBS -N deconseqdb_format
+#PBS -S /bin/bash
+#PBS -q CLOUDHMQ
+#PBS -l nodes=2:ppn=4:series800
+#PBS -V
+#PBS -M mario.jonas@uct.ac.za
+
+#PBS -m ae
+# Source: http://deconseq.sourceforge.net/manual.html#DB
+
+# Splitting sequences by long repeats of ambiguous base N
+cat unique.fa | perl -p -e 's/N\n/N/' | perl -p -e 's/^N+//;s/N+$//;s/N{200,}/\n>split\n/' >unique_split.fa
+
+#Filtering sequences
+/opt/exp_soft/prinseq-lite-0.20.4/prinseq-lite.pl -log -verbose -fasta unique_split.fa -min_len 200 -ns_max_p 10 -derep 12345 -out_good _unique_split_prinseq -out_bad bad ; rm unique_split.fa
+
+#Creating the DeconSeq database
+perl -e '$ind=10;foreach(@ARGV){$out="bacterial_contaminants".$ind++;system("/opt/exp_soft/bwa-0.7.12/bwa index -p $out -a bwtsw $_ >bwa.log 2>&1");}' unique_dust_split.fa.*

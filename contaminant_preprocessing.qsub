@@ -1,0 +1,19 @@
+#!/bin/bash
+#PBS -N contaminant_preprocess
+#PBS -S /bin/bash
+#PBS -q CLOUDHMQ
+#PBS -l nodes=2:ppn=4:series800
+#PBS -V
+#PBS -M mario.jonas@uct.ac.za
+
+#PBS -m ae
+
+# Duplicate removal: change "subset1and2and3andEBV.fa" below to reflect the
+# correct input fasta file
+/opt/exp_soft/qiime/packages/other/genometools-1.5.9/bin/gt sequniq -o unique.fa subset1and2and3andEBV.fa
+
+# Database masking: Low complexity masking with DUST
+dustmaker -in unique.fa -out unique_dust.fa
+
+# Format for BLAST searching
+makeblastdb -in *_dust.fa -dbtype nucl -parse_seqids -title saltercontaminants
